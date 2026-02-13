@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valentine's Gift</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    :root {
+      --glass: rgba(255, 255, 255, 0.72);
+      --glassBorder: rgba(255, 255, 255, 0.55);
+    }
+
+    body {
+      box-sizing: border-box;
+    }
+
+    .font-playfair {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .font-script {
+      font-family: 'Dancing Script', cursive;
+    }
+
+    .page-bg {
+      background: linear-gradient(135deg, #fff1f2 0%, #ffe4f1 35%, #fff7ed 100%);
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(4deg);
+      }
+    }
+
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        opacity: .6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-5px);
+      }
+
+      40% {
+        transform: translateX(5px);
+      }
+
+      60% {
+        transform: translateX(-3px);
+      }
+
+      80% {
+        transform: translateX(3px);
+      }
+    }
+
+    .heart-float {
+      animation: float 3.2s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .heart-glow {
+      animation: pulseGlow 2.2s ease-in-out infinite;
+      will-change: opacity;
+    }
+
+    .shake {
+      animation: shake .32s ease-in-out;
+    }
+
+    /* Screens */
+    .screen {
+      opacity: 0;
+      transform: translateY(18px);
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .45s ease, transform .45s ease;
+    }
+
+    .screen.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .screen.top {
+      justify-content: flex-start;
+      padding-top: 8px;
+    }
+
+    /* Glass */
+    .glass {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--glassBorder);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
+    }
+
+    /* Choice cards */
+    .choice-card {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      border-radius: 24px;
+      transition: transform .2s ease, filter .2s ease, opacity .2s ease;
+      outline: none;
+    }
+
+    .choice-card:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .choice-card.locked {
+      cursor: not-allowed;
+      filter: grayscale(.45);
+      opacity: .7;
+      transform: none !important;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .choice-card.locked .lock-overlay {
+      display: flex;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10);
+      pointer-events: none;
+    }
+
+    .choice-card.completed .badge {
+      display: flex;
+    }
+
+    /* Modal */
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .4);
+    }
+
+    .modal-panel {
+      position: relative;
+      width: min(560px, 100%);
+      border-radius: 24px;
+      padding: 20px;
+      margin: auto;
+    }
+
+    /* ---------- ENVELOPE (responsive + readable letter) ---------- */
+    .envelope-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 6px 0 2px;
+    }
+
+    .envelope-wrap {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      padding: 310px 0 6px;
+    }
+
+    .envelope {
+      --w: clamp(260px, 62vw, 390px);
+      --h: calc(var(--w) * 0.65);
+
+      position: relative;
+      width: var(--w);
+      height: var(--h);
+      perspective: 800px;
+      overflow: hidden;
+      cursor: pointer;
+      will-change: auto;
+    }
+
+    .envelope.open {
+      overflow: visible;
+      cursor: default;
+    }
+
+    .env-back {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, #ff9a9a, #ff7070);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+      z-index: 1;
+    }
+
+    /* Paper / Letter – starts hidden inside envelope */
+    .letter {
+      position: absolute;
+      left: 3%;
+      width: 94%;
+      height: 420px;
+      bottom: 10px;
+      background: #fffef9;
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .12);
+      transform: translateY(165%);
+      z-index: 8;
+      overflow: hidden;
+      transition: none;
+      will-change: transform;
+    }
+
+    /* When envelope opens: flap first, then paper slides up after delay */
+    .envelope.open .letter {
+      transform: translateY(-68%);
+      transition: transform .7s cubic-bezier(.22, .95, .36, 1) .45s;
+    }
+
+    /* ---------- Mobile responsive ---------- */
+    @media (max-width: 480px) {
+      .envelope-wrap {
+        padding-top: 280px;
+      }
+
+      .envelope {
+        --w: clamp(240px, 80vw, 320px);
+      }
+
+      .letter {
+        height: 380px;
+      }
+
+      .letter-scroll .font-script {
+        font-size: 18px;
+        line-height: 1.7;
+      }
+
+      .surprise-btn {
+        padding: 12px 22px;
+        font-size: 14px;
+      }
+
+      .video-overlay video {
+        width: 94vw;
+        border-radius: 12px;
+      }
+
+      .modal-panel {
+        padding: 14px;
+        border-radius: 18px;
+      }
+    }
+
+    .letter-scroll {
+      height: 100%;
+      overflow: auto;
+      padding: 22px 24px 28px;
+      padding-right: 14px;
+      background:
+        repeating-linear-gradient(to bottom,
+          transparent 0px,
+          transparent 30px,
+          rgba(200, 180, 170, 0.15) 30px,
+          rgba(200, 180, 170, 0.15) 31px);
+    }
+
+    .letter-scroll::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    .letter-scroll::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, .18);
+      border-radius: 999px;
+    }
+
+    .letter-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Letter text sizing */
+    .letter-scroll .font-script {
+      font-size: 22px;
+      line-height: 1.85;
+      color: #2d1f1f;
+    }
+
+    .letter-scroll .font-playfair {
+      color: #6b7280;
+    }
+
+    .env-left {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      border-top: calc(var(--h)/2) solid transparent;
+      border-bottom: calc(var(--h)/2) solid transparent;
+      border-right: calc(var(--w)/2) solid #ff7a7a;
+      z-index: 5;
+    }
+
+    .env-right {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      border-top: calc(var(--h)/2) solid transparent;
+      border-bottom: calc(var(--h)/2) solid transparent;
+      border-left: calc(var(--w)/2) solid #ff7a7a;
+      z-index: 5;
+    }
+
+    .env-bottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      margin: auto;
+      border-left: calc(var(--w)/2) solid transparent;
+      border-right: calc(var(--w)/2) solid transparent;
+      border-top: calc(var(--h)/2) solid #ff6b6b;
+      z-index: 6;
+    }
+
+    .env-flap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      margin: auto;
+      border-left: calc(var(--w)/2) solid transparent;
+      border-right: calc(var(--w)/2) solid transparent;
+      border-bottom: calc(var(--h)/2 + 14px) solid #ff9a9a;
+      transform-origin: top center;
+      transform: rotateX(0deg);
+      transition: transform .5s cubic-bezier(.22, .95, .36, 1);
+      z-index: 9;
+      will-change: transform;
+    }
+
+    .envelope.open .env-flap {
+      transform: rotateX(180deg);
+      z-index: 2;
+    }
+
+    /* ---------- Surprise Button inside letter ---------- */
+    @keyframes surprisePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5);
+      }
+
+      50% {
+        box-shadow: 0 0 20px 8px rgba(244, 63, 94, 0.25);
+      }
+    }
+
+    .surprise-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #f43f5e, #ec4899, #f59e0b);
+      cursor: pointer;
+      animation: surprisePulse 2s ease-in-out infinite;
+      transition: transform .2s ease;
+    }
+
+    .surprise-btn:hover {
+      transform: scale(1.06);
+    }
+
+    .surprise-btn:active {
+      transform: scale(0.97);
+    }
+
+    @keyframes surpriseShimmer {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    /* ---------- Fullscreen Video Overlay ---------- */
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.9);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+    }
+
+    .video-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .video-overlay video {
+      width: min(90vw, 720px);
+      max-height: 80vh;
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+      transform: scale(0.9);
+      transition: transform .45s cubic-bezier(.22, .95, .36, 1);
+    }
+
+    .video-overlay.active video {
+      transform: scale(1);
+    }
+
+    .video-overlay .close-video-btn {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, border-color .2s;
+    }
+
+    .video-overlay .close-video-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.7);
+    }
+  </style>
+</head>
+
+<body class="h-full m-0 p-0 overflow-auto page-bg">
+  <div id="app-wrapper" class="min-h-full w-full flex items-center justify-center p-4 md:p-10 relative">
+
+    <!-- Floating hearts SVG background -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <svg class="absolute top-10 left-10 w-8 h-8 text-rose-300/70 heart-float" style="animation-delay: 0s;"
+        viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+      <svg class="absolute top-24 right-20 w-6 h-6 text-pink-400/60 heart-float" style="animation-delay: .6s;"
+        viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+      <svg class="absolute bottom-28 left-16 w-10 h-10 text-rose-400/40 heart-float" style="animation-delay: 1.2s;"
+        viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+    </div>
+
+    <main class="relative z-10 w-full max-w-5xl rounded-[28px]">
+      <div class="glass rounded-[28px] p-6 md:p-10">
+
+        <div class="flex items-center justify-between mb-6 md:mb-8">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-2xl bg-white/60 border border-white/60 flex items-center justify-center shadow-sm">
+              <svg class="w-6 h-6 text-rose-500 heart-glow" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+            </div>
+            <div>
+              <p class="font-playfair text-sm text-rose-700/70">Valentine’s</p>
+              <p class="font-playfair text-lg md:text-xl text-rose-700 font-bold leading-tight">Gift</p>
+            </div>
+          </div>
+
+          <div class="hidden sm:flex items-center gap-2 text-xs font-playfair text-rose-700/70">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 border border-white/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              <span id="step-label">Step 1 of 2</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="relative min-h-[560px] md:min-h-[560px]">
+          <!-- SCREEN 1 -->
+          <section id="screen-1" class="screen active flex-col text-center px-2">
+            <div class="max-w-2xl mx-auto">
+              <div class="mb-8">
+                <svg class="w-28 h-28 md:w-32 md:h-32 text-rose-500 heart-glow mx-auto" viewBox="0 0 24 24"
+                  fill="currentColor">
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+
+              <h1 id="greeting" class="font-playfair text-4xl md:text-6xl font-bold tracking-tight mb-4">
+                <span class="bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 bg-clip-text text-transparent">
+                  Happy Valentine's Day!
+                </span>
+              </h1>
+
+              <p class="font-script text-2xl md:text-3xl text-rose-500/80 mb-10">
+                I have a special gift for you...
+              </p>
+
+              <button type="button" onclick="goToScreen2()" class="font-playfair inline-flex items-center justify-center gap-2 text-white px-10 py-4 rounded-full text-lg font-bold shadow-lg
+                       bg-gradient-to-r from-rose-500 via-pink-500 to-amber-400
+                       hover:from-rose-600 hover:via-pink-600 hover:to-amber-500
+                       transition transform hover:scale-[1.03] active:scale-[0.99]
+                       focus:outline-none focus:ring-4 focus:ring-rose-300/60">
+                <span>Open the Surprise</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- SCREEN 2 -->
+          <section id="screen-2" class="screen top flex-col w-full">
+            <div class="w-full">
+              <div class="text-center mb-6 md:mb-8">
+                <p class="font-playfair text-sm md:text-base tracking-[0.25em] text-rose-600/75 uppercase mb-2">Happy
+                  Valentine's!!</p>
+                <h2 class="font-playfair text-3xl md:text-5xl font-bold text-rose-700 mb-2">Start from 1</h2>
+                <p class="font-script text-lg md:text-xl text-rose-500/80">My thoughts about you</p>
+              </div>
+
+              <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-7 max-w-5xl mx-auto">
+                <!-- 1 -->
+                <div
+                  class="choice-card h-64 md:h-72 bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-xl border border-white/30 flex items-center justify-center"
+                  data-step="1" role="button" tabindex="0" aria-label="Choose 1">
+                  <div class="badge" aria-hidden="true">
+                    <svg class="w-5 h-5 text-rose-600" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                  </div>
+                  <div class="lock-overlay" aria-hidden="true">
+                    <div class="flex flex-col items-center gap-2">
+                      <svg class="w-10 h-10 text-rose-600/80" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                          d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm3 8H9V6a3 3 0 016 0v3z" />
+                      </svg>
+                      <span class="font-playfair text-sm text-rose-700/80">Locked</span>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <div
+                      class="w-16 h-16 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center mx-auto mb-4">
+                      <span id="card-1-title" class="font-playfair text-5xl font-bold">1</span>
+                    </div>
+                    <p class="text-white/90 text-sm">Tap to open</p>
+                  </div>
+                </div>
+
+                <!-- 2 -->
+                <div
+                  class="choice-card h-64 md:h-72 bg-gradient-to-br from-purple-500 to-rose-500 text-white shadow-xl border border-white/30 flex items-center justify-center"
+                  data-step="2" role="button" tabindex="-1" aria-label="Choose 2" aria-disabled="true">
+                  <div class="badge" aria-hidden="true">
+                    <svg class="w-5 h-5 text-rose-600" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                  </div>
+                  <div class="lock-overlay" aria-hidden="true">
+                    <div class="flex flex-col items-center gap-2">
+                      <svg class="w-10 h-10 text-rose-600/80" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                          d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm3 8H9V6a3 3 0 016 0v3z" />
+                      </svg>
+                      <span class="font-playfair text-sm text-rose-700/80">Locked</span>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <div
+                      class="w-16 h-16 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center mx-auto mb-4">
+                      <span id="card-2-title" class="font-playfair text-5xl font-bold">2</span>
+                    </div>
+                    <p class="text-white/90 text-sm">Tap to open</p>
+                  </div>
+                </div>
+
+                <!-- 3 -->
+                <div
+                  class="choice-card h-64 md:h-72 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-xl border border-white/30 flex items-center justify-center"
+                  data-step="3" role="button" tabindex="-1" aria-label="Choose 3" aria-disabled="true">
+                  <div class="badge" aria-hidden="true">
+                    <svg class="w-5 h-5 text-rose-600" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                  </div>
+                  <div class="lock-overlay" aria-hidden="true">
+                    <div class="flex flex-col items-center gap-2">
+                      <svg class="w-10 h-10 text-rose-600/80" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                          d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm3 8H9V6a3 3 0 016 0v3z" />
+                      </svg>
+                      <span class="font-playfair text-sm text-rose-700/80">Locked</span>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <div
+                      class="w-16 h-16 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center mx-auto mb-4">
+                      <span id="card-3-title" class="font-playfair text-5xl font-bold">3</span>
+                    </div>
+                    <p class="text-white/90 text-sm">Tap to open</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-center mt-8">
+                <button type="button" onclick="goToScreen1()"
+                  class="font-playfair text-rose-700 hover:text-rose-800 text-base md:text-lg border border-rose-400/60 hover:border-rose-500/80 bg-white/40 hover:bg-white/55 px-8 py-3 rounded-full transition shadow-sm hover:shadow">
+                  ← Go Back
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- GIFT MODAL -->
+  <div id="gift-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel glass border border-white/60 shadow-2xl">
+      <div class="text-center mb-4">
+        <p class="font-playfair text-xs tracking-[0.25em] uppercase text-rose-600/75">Small Gift</p>
+        <h3 id="gift-modal-title" class="font-playfair text-2xl md:text-3xl font-bold text-rose-700 mt-2">Gift 1</h3>
+        <p class="font-script text-lg text-rose-500/80 mt-2">Press NEXT to continue.</p>
+      </div>
+
+      <div class="bg-white/55 border border-white/60 rounded-2xl p-4 md:p-5">
+        <p id="gift-modal-body" class="font-script text-xl text-gray-800 leading-relaxed"></p>
+      </div>
+
+      <div class="mt-6 flex justify-center gap-3">
+        <button type="button" onclick="closeGiftModal()"
+          class="font-playfair px-7 py-2.5 rounded-md border border-rose-500/50 text-rose-700 bg-white/40 hover:bg-white/60 transition">
+          CLOSE
+        </button>
+
+        <button id="gift-modal-primary" type="button" onclick="confirmGiftStep()"
+          class="font-playfair px-7 py-2.5 rounded-md border border-rose-500/60 text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 shadow transition">
+          NEXT
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENVELOPE MODAL -->
+  <div id="envelope-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+
+    <div class="modal-panel glass border border-white/60 shadow-2xl" style="width:min(560px,100%);">
+      <div class="text-center mb-4">
+        <p class="font-playfair text-xs tracking-[0.25em] uppercase text-rose-600/75">Small Gift</p>
+        <h3 class="font-playfair text-2xl md:text-3xl font-bold text-rose-700 mt-2">A Letter For You</h3>
+        <p class="font-script text-lg text-rose-500/80 mt-2">Tap the envelope to open it</p>
+      </div>
+
+      <div class="envelope-stage">
+        <!-- Envelope -->
+        <div class="envelope-wrap">
+          <div id="envelope" class="envelope" onclick="openEnvelope()">
+            <div class="env-back"></div>
+
+            <div class="letter">
+              <div id="letter-scroll" class="letter-scroll">
+                <p class="font-playfair text-xs mb-3" style="color:#b08968;">To: Niekaela Gumbila</p>
+
+                <p class="font-script leading-relaxed mb-4">
+                  My dearest, Nieka aaaa ang cheesy
+                </p>
+
+                <p class="font-script leading-relaxed mb-4">
+                  btw I hope you accept this small gift for you wala ka ng choice binabasa mo na eh.
+                </p>
+
+                <p class="font-script leading-relaxed mb-4">
+                  This is a small reminder you are doing an amazing job! I am so proud of everything you've you
+                  accomplished
+                  and of how far you've come. And you should be too!
+                </p>
+
+                <p class="font-script leading-relaxed mb-4">
+                  And when life feels unbelivably heavy, I hope you gain the wisdom to remember you are not defined by
+                  what happened to you.
+                  all will be well, just keep going.
+                </p>
+
+                <p class="font-script leading-relaxed mb-4">
+                  And do not think less of yourself just because today you were not the best. Don't be so hard on
+                  yourself, okay?
+                  As the your universe song told me, "you can thank your stars all you want but I'll always be the lucky
+                  one."
+                </p>
+
+                <p class="font-script leading-relaxed mb-4">
+                  I just wanted you to know that you're appreciated more than you think. You make ordinary moments feel
+                  special. Thank you for being you. If you ever doubt yourself, I hope you remember this: you're
+                  amazing.
+                </p>
+
+                <p class="font-script mt-2 mb-6">— Happy Valentine's 🐣</p>
+
+                <!-- Surprise Button -->
+                <div class="text-center" style="padding-bottom:12px;">
+                  <button type="button" class="surprise-btn" onclick="onSurpriseClick(event)">
+                    Click for a Surprise
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="env-left"></div>
+            <div class="env-right"></div>
+            <div class="env-bottom"></div>
+            <div class="env-flap"></div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-3">
+          <button type="button" onclick="closeEnvelopeModal()"
+            class="font-playfair w-28 px-5 py-2.5 rounded-md border border-rose-500/50 text-rose-700 bg-white/40 hover:bg-white/60 transition">
+            CLOSE
+          </button>
+        </div>
+
+        <button type="button" onclick="restartSequence()"
+          class="mt-2 font-playfair text-rose-700 hover:text-rose-800 text-sm border border-rose-400/60 hover:border-rose-500/80 bg-white/40 hover:bg-white/60 px-6 py-2.5 rounded-full transition shadow-sm hover:shadow">
+          Restart 1 → 3
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULLSCREEN VIDEO OVERLAY -->
+  <div id="video-overlay" class="video-overlay">
+    <button type="button" class="close-video-btn" onclick="closeVideoOverlay()" aria-label="Close video">✕</button>
+    <video id="final-video" src="video.mp4" controls playsinline preload="auto"></video>
+  </div>
+
+  <script>
+    // Element SDK config
+    const defaultConfig = {
+      greeting_message: "Happy Valentine's Day!",
+      card_1_title: "1",
+      card_2_title: "2",
+      card_3_title: "3"
+    };
+
+    async function onConfigChange(config) {
+      const greeting = document.getElementById("greeting");
+      if (greeting) greeting.textContent = config.greeting_message || defaultConfig.greeting_message;
+
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById(`card-${i}-title`);
+        if (el) el.textContent = config[`card_${i}_title`] || defaultConfig[`card_${i}_title`];
+      }
+    }
+
+    function mapToCapabilities() {
+      return { recolorables: [], borderables: [], fontEditable: undefined, fontSizeable: undefined };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["greeting_message", config.greeting_message || defaultConfig.greeting_message],
+        ["card_1_title", config.card_1_title || defaultConfig.card_1_title],
+        ["card_2_title", config.card_2_title || defaultConfig.card_2_title],
+        ["card_3_title", config.card_3_title || defaultConfig.card_3_title]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({ defaultConfig, onConfigChange, mapToCapabilities, mapToEditPanelValues });
+    }
+
+    // Sequence
+    let currentStep = 1;
+    const completed = { 1: false, 2: false, 3: false };
+    let activeModalStep = null;
+    let bound = false;
+
+    const giftTexts = {
+      1: "Your deep brown eyes are alluring—especially when you smile and they narrow a little.",
+      2: "How your smile shines bright. It makes everything softer and brighter.",
+      3: "Bello chica, hallo papagena tu la bella con la papaya."
+    };
+    const giftTitles = { 1: "Gift 1", 2: "Gift 2", 3: "Gift 3" };
+    const giftTopics = { 1: "Eyes", 2: "Smile", 3: "Lips" };
+
+    function setStepLabel(text) {
+      const el = document.getElementById("step-label");
+      if (el) el.textContent = text;
+    }
+
+    function updateLocks() {
+      document.querySelectorAll(".choice-card").forEach(card => {
+        const step = Number(card.dataset.step);
+        const locked = step > currentStep;
+        const done = !!completed[step];
+        card.classList.toggle("locked", locked);
+        card.classList.toggle("completed", done);
+        card.setAttribute("aria-disabled", locked ? "true" : "false");
+        card.tabIndex = locked ? -1 : 0;
+      });
+    }
+
+    function shakeCard(card) {
+      card.classList.add("shake");
+      setTimeout(() => card.classList.remove("shake"), 350);
+    }
+
+    function bindOnce() {
+      if (bound) return;
+
+      document.querySelectorAll(".choice-card").forEach(card => {
+        const activate = () => {
+          const step = Number(card.dataset.step);
+          if (step > currentStep) return shakeCard(card);
+          openGiftModal(step);
+        };
+
+        card.addEventListener("click", activate);
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            activate();
+          }
+        });
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeGiftModal();
+          closeEnvelopeModal();
+          closeVideoOverlay();
+        }
+      });
+
+      bound = true;
+    }
+
+    function openGiftModal(step) {
+      activeModalStep = step;
+      document.getElementById("gift-modal-title").textContent = `${giftTitles[step]} — ${giftTopics[step]}`;
+      document.getElementById("gift-modal-body").textContent = giftTexts[step];
+
+      const modal = document.getElementById("gift-modal");
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeGiftModal() {
+      const modal = document.getElementById("gift-modal");
+      if (!modal.classList.contains("hidden")) {
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden", "true");
+      }
+      activeModalStep = null;
+    }
+
+    function confirmGiftStep() {
+      if (!activeModalStep) return;
+      const step = activeModalStep;
+
+      completed[step] = true;
+      if (step < 3) currentStep = Math.max(currentStep, step + 1);
+      updateLocks();
+
+      if (step < 3) {
+        openGiftModal(step + 1);
+      } else {
+        closeGiftModal();
+        openEnvelopeModal();
+      }
+    }
+
+    function openEnvelopeModal() {
+      const modal = document.getElementById("envelope-modal");
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+
+      // Reset envelope to closed state
+      document.getElementById("envelope").classList.remove("open");
+
+      const letterScroll = document.getElementById("letter-scroll");
+      if (letterScroll) letterScroll.scrollTop = 0;
+    }
+
+    function closeEnvelopeModal() {
+      const modal = document.getElementById("envelope-modal");
+      if (!modal.classList.contains("hidden")) {
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden", "true");
+      }
+      document.getElementById("envelope").classList.remove("open");
+    }
+
+    function openEnvelope() {
+      const env = document.getElementById("envelope");
+      if (env.classList.contains("open")) return; // already open
+      env.classList.add("open");
+      // Flap opens immediately (0.6s CSS), then paper slides up after 0.55s delay (CSS transition-delay)
+    }
+
+    // ---------- Surprise Button → Video Overlay ----------
+    function onSurpriseClick(e) {
+      e.stopPropagation(); // don't trigger envelope click
+      openVideoOverlay();
+    }
+
+    function openVideoOverlay() {
+      const overlay = document.getElementById("video-overlay");
+      const v = document.getElementById("final-video");
+
+      overlay.classList.add("active");
+      v.currentTime = 0;
+      v.muted = false;
+      v.volume = 1;
+
+      // Try to play with sound; if browser blocks, fallback to muted; controls are always visible
+      v.play().catch(() => {
+        v.muted = true;
+        return v.play();
+      }).catch(() => {
+        // Autoplay fully blocked – user can tap the play button via controls
+      });
+    }
+
+    function closeVideoOverlay() {
+      const overlay = document.getElementById("video-overlay");
+      const v = document.getElementById("final-video");
+
+      overlay.classList.remove("active");
+      v.pause();
+      v.currentTime = 0;
+    }
+
+    function restartSequence() {
+      completed[1] = completed[2] = completed[3] = false;
+      currentStep = 1;
+      closeGiftModal();
+      closeEnvelopeModal();
+      closeVideoOverlay();
+      updateLocks();
+    }
+
+    function goToScreen2() {
+      document.getElementById("screen-1").classList.remove("active");
+      document.getElementById("screen-2").classList.add("active");
+      setStepLabel("Step 2 of 2");
+
+      bindOnce();
+      restartSequence();
+    }
+
+    function goToScreen1() {
+      document.getElementById("screen-2").classList.remove("active");
+      document.getElementById("screen-1").classList.add("active");
+      setStepLabel("Step 1 of 2");
+      closeGiftModal();
+      closeEnvelopeModal();
+      closeVideoOverlay();
+    }
+
+    // Backdrop click closes
+    document.getElementById("gift-modal").addEventListener("click", (e) => {
+      if (e.target.classList.contains("modal-backdrop")) closeGiftModal();
+    });
+    document.getElementById("envelope-modal").addEventListener("click", (e) => {
+      if (e.target.classList.contains("modal-backdrop")) closeEnvelopeModal();
+    });
+    // Click outside video closes overlay
+    document.getElementById("video-overlay").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeVideoOverlay();
+    });
+
+    updateLocks();
+  </script>
+</body>
+
+</html>
