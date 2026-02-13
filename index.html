@@ -285,39 +285,49 @@
     /* ---------- Mobile responsive ---------- */
     @media (max-width: 480px) {
       .modal {
-        padding: 10px;
+        padding: 8px;
       }
 
       .modal-panel {
-        padding: 14px;
+        padding: 12px;
         border-radius: 18px;
-        max-height: 95vh;
+        max-height: 96vh;
         overflow-y: auto;
       }
 
+      .envelope-stage {
+        gap: 8px;
+        padding: 2px 0;
+      }
+
       .envelope-wrap {
-        padding-top: 240px;
+        padding-top: 160px;
       }
 
       .envelope {
-        --w: clamp(220px, 75vw, 300px);
+        --w: clamp(200px, 70vw, 260px);
       }
 
       .letter {
-        height: 340px;
+        height: 260px;
       }
 
       .envelope.open .letter {
-        transform: translateY(-72%);
+        transform: translateY(-58%);
+      }
+
+      .letter-scroll {
+        padding: 16px 18px 20px;
+        padding-right: 10px;
       }
 
       .letter-scroll .font-script {
-        font-size: 17px;
-        line-height: 1.65;
+        font-size: 15px;
+        line-height: 1.55;
       }
 
       .surprise-btn {
-        padding: 11px 20px;
+        padding: 10px 18px;
         font-size: 13px;
       }
 
