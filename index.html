@@ -301,19 +301,24 @@
       }
 
       .envelope-wrap {
-        padding-top: 160px;
+        padding-top: 10px;
       }
 
       .envelope {
-        --w: clamp(200px, 70vw, 260px);
+        --w: clamp(240px, 78vw, 300px);
       }
 
       .letter {
-        height: 260px;
+        height: 300px;
+        bottom: auto;
+        top: 50%;
+        left: 3%;
+        width: 94%;
+        transform: translateY(150%);
       }
 
       .envelope.open .letter {
-        transform: translateY(-58%);
+        transform: translateY(-50%);
       }
 
       .letter-scroll {
