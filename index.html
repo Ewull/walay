@@ -196,7 +196,7 @@
       inset: 0;
       z-index: 50;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
       padding: 16px;
       overflow-y: auto;
@@ -229,7 +229,7 @@
       display: flex;
       justify-content: center;
       width: 100%;
-      padding: 310px 0 6px;
+      padding: 280px 0 6px;
     }
 
     .envelope {
@@ -284,36 +284,46 @@
 
     /* ---------- Mobile responsive ---------- */
     @media (max-width: 480px) {
-      .envelope-wrap {
-        padding-top: 280px;
-      }
-
-      .envelope {
-        --w: clamp(240px, 80vw, 320px);
-      }
-
-      .letter {
-        height: 380px;
-      }
-
-      .letter-scroll .font-script {
-        font-size: 18px;
-        line-height: 1.7;
-      }
-
-      .surprise-btn {
-        padding: 12px 22px;
-        font-size: 14px;
-      }
-
-      .video-overlay video {
-        width: 94vw;
-        border-radius: 12px;
+      .modal {
+        padding: 10px;
       }
 
       .modal-panel {
         padding: 14px;
         border-radius: 18px;
+        max-height: 95vh;
+        overflow-y: auto;
+      }
+
+      .envelope-wrap {
+        padding-top: 240px;
+      }
+
+      .envelope {
+        --w: clamp(220px, 75vw, 300px);
+      }
+
+      .letter {
+        height: 340px;
+      }
+
+      .envelope.open .letter {
+        transform: translateY(-72%);
+      }
+
+      .letter-scroll .font-script {
+        font-size: 17px;
+        line-height: 1.65;
+      }
+
+      .surprise-btn {
+        padding: 11px 20px;
+        font-size: 13px;
+      }
+
+      .video-overlay video {
+        width: 94vw;
+        border-radius: 12px;
       }
     }
 
@@ -1073,6 +1083,5 @@
     updateLocks();
   </script>
 </body>
-
 
 </html>
